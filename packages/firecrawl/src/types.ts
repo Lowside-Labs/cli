@@ -1,5 +1,6 @@
 export interface FirecrawlConfig {
   proxyUrl: string;
+  headers?: Record<string, string>;
 }
 
 export type ScrapeFormat = "screenshot" | "markdown" | "branding" | "html" | "rawHtml" | "links";

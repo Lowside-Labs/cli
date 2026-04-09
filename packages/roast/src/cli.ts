@@ -67,7 +67,7 @@ function copyImageToClipboard(filePath: string): boolean {
 program
   .name("roasted")
   .description("Roast any website with AI-powered brutality")
-  .version("0.1.0")
+  .version(__PKG_VERSION__)
   .argument("<url>", "URL to roast")
   .option("--share", "Generate a PNG card and copy to clipboard (skips prompt)")
   .action(async (url: string, opts: { share?: boolean }) => {

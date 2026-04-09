@@ -13,13 +13,13 @@ export type {
 import type { FirecrawlConfig, ScrapeOptions, ScrapeResult } from "./types.js";
 
 export function createFirecrawlClient(config: FirecrawlConfig) {
-  const { proxyUrl } = config;
+  const { proxyUrl, headers: customHeaders } = config;
 
   return {
     async scrape(url: string, options: ScrapeOptions): Promise<ScrapeResult> {
       const response = await fetch(`${proxyUrl}/scrape`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...customHeaders },
         body: JSON.stringify({ url, ...options }),
       });
 

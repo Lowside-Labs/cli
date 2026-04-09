@@ -3,6 +3,7 @@ interface Env {
   ANTHROPIC_API_KEY: string;
   OPENAI_API_KEY: string;
   RATE_LIMITER: RateLimit;
+  USAGE: AnalyticsEngineDataset;
 }
 
 export default {
@@ -21,31 +22,46 @@ export default {
     }
 
     const url = new URL(request.url);
+    const start = Date.now();
+    const tool = request.headers.get("x-npx-tool") ?? "unknown";
+    const version = request.headers.get("x-npx-version") ?? "unknown";
+
+    let route: string;
+    let response: Response;
 
     if (url.pathname === "/scrape" && request.method === "POST") {
-      return handleScrape(request, env);
-    }
-
-    if (url.pathname.startsWith("/anthropic/v1/")) {
-      return proxyUpstream(request, url, {
+      route = "scrape";
+      response = await handleScrape(request, env);
+    } else if (url.pathname.startsWith("/anthropic/v1/")) {
+      route = "anthropic";
+      response = await proxyUpstream(request, url, {
         prefix: "/anthropic/v1",
         origin: "https://api.anthropic.com/v1",
         authHeader: "x-api-key",
         apiKey: env.ANTHROPIC_API_KEY,
         extraHeaders: { "anthropic-version": "2023-06-01" },
       });
-    }
-
-    if (url.pathname.startsWith("/openai/v1/")) {
-      return proxyUpstream(request, url, {
+    } else if (url.pathname.startsWith("/openai/v1/")) {
+      route = "openai";
+      response = await proxyUpstream(request, url, {
         prefix: "/openai/v1",
         origin: "https://api.openai.com/v1",
         authHeader: "Authorization",
         apiKey: `Bearer ${env.OPENAI_API_KEY}`,
       });
+    } else {
+      return json({ error: "Not found" }, 404);
     }
 
-    return json({ error: "Not found" }, 404);
+    trackUsage(env, {
+      tool,
+      version,
+      route,
+      status: response.status,
+      latencyMs: Date.now() - start,
+    });
+
+    return response;
   },
 } satisfies ExportedHandler<Env>;
 
@@ -91,6 +107,8 @@ async function proxyUpstream(
   const upstream = `${config.origin}${upstreamPath}${url.search}`;
 
   const headers = new Headers(request.headers);
+  headers.delete("x-npx-tool");
+  headers.delete("x-npx-version");
   headers.set(config.authHeader, config.apiKey);
 
   if (config.extraHeaders) {
@@ -116,6 +134,26 @@ async function proxyUpstream(
   });
 }
 
+// ── Usage tracking (Analytics Engine) ──────────────────────────────
+
+interface UsageEvent {
+  tool: string;
+  version: string;
+  route: string;
+  status: number;
+  latencyMs: number;
+}
+
+function trackUsage(env: Env, event: UsageEvent): void {
+  if (!env.USAGE) return; // skip in local dev
+
+  env.USAGE.writeDataPoint({
+    blobs: [event.tool, event.version, event.route],
+    doubles: [event.status, event.latencyMs],
+    indexes: [event.tool],
+  });
+}
+
 // ── Helpers ─────────────────────────────────────────────────────────
 
 function json(data: unknown, status = 200): Response {
@@ -130,6 +168,6 @@ function corsHeaders(): Record<string, string> {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers":
-      "Content-Type, Authorization, x-api-key, anthropic-version",
+      "Content-Type, Authorization, x-api-key, anthropic-version, x-npx-tool, x-npx-version",
   };
 }

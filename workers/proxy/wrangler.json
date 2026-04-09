@@ -3,6 +3,12 @@
   "name": "npx-proxy",
   "main": "src/index.ts",
   "compatibility_date": "2026-04-01",
+  "analytics_engine_datasets": [
+    {
+      "binding": "USAGE",
+      "dataset": "npx_usage"
+    }
+  ],
   "ratelimits": [
     {
       "name": "RATE_LIMITER",

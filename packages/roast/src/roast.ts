@@ -6,9 +6,15 @@ import type { RoastResult } from "./types.js";
 
 const PROXY_URL = process.env["PROXY_URL"] ?? "https://npx-proxy.emad90mohamad.workers.dev";
 
+const NPX_HEADERS = {
+  "x-npx-tool": "roasted",
+  "x-npx-version": __PKG_VERSION__,
+};
+
 const anthropic = createAnthropic({
   baseURL: `${PROXY_URL}/anthropic/v1`,
   apiKey: "proxy",
+  headers: NPX_HEADERS,
 });
 
 export interface RoastData {
@@ -17,7 +23,7 @@ export interface RoastData {
 }
 
 export async function roastUrl(url: string): Promise<RoastData> {
-  const firecrawl = createFirecrawlClient({ proxyUrl: PROXY_URL });
+  const firecrawl = createFirecrawlClient({ proxyUrl: PROXY_URL, headers: NPX_HEADERS });
 
   const site = await firecrawl.scrape(url, {
     formats: ["screenshot", "markdown", "branding"],
