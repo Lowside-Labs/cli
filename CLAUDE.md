@@ -48,7 +48,6 @@ pnpm deploy             # wrangler deploy (production)
 ```
 packages/
   firecrawl/       @npx/firecrawl  — Firecrawl client primitive (private)
-  ai/              @npx/ai         — AI proxy client primitive (private)
   roast/           roast           — CLI tool (published via npx)
   cli-template/    cli-template    — Starter template (private)
 workers/
@@ -72,7 +71,7 @@ const result = await ai.generate({ system: "...", messages: [...], schema: mySch
 
 The AI client supports structured output — pass a JSON schema and get typed `result.parsed` back. The proxy translates this to Anthropic's tool_use protocol.
 
-For AI, CLI tools use the Vercel AI SDK (`ai` + `@ai-sdk/anthropic`) directly with `generateText` + `Output.object()` for structured output. The `@ai-sdk/anthropic` provider points at the CF Worker proxy via `baseURL`, which injects the API key transparently. `@npx/ai` exists as a lighter alternative but `roast` uses the SDK directly.
+For AI, CLI tools use the Vercel AI SDK (`ai` + `@ai-sdk/anthropic`) directly with `generateText` + `Output.object()` for structured output. The `@ai-sdk/anthropic` provider points at the CF Worker proxy via `baseURL`, which injects the API key transparently.
 
 ### Bundling
 
@@ -95,7 +94,7 @@ Two routes: `POST /scrape` (Firecrawl) and `/anthropic/v1/*` (transparent Anthro
 1. `cp -r packages/cli-template packages/your-tool`
 2. Update `name`, `description`, and `bin` key in `package.json`
 3. Set `"private": false` for publishable packages
-4. Add `@npx/firecrawl` and/or `@npx/ai` to `devDependencies` with `workspace:*` if needed
+4. Add `@npx/firecrawl` to `devDependencies` with `workspace:*` if needed
 5. Add them to `deps.alwaysBundle` in `tsdown.config.ts`
 6. `pnpm install` from root to link
 
