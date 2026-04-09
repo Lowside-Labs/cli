@@ -5,6 +5,7 @@ export interface RoastCategory {
 }
 
 export interface QuickWin {
+  category: "performance" | "accessibility" | "seo" | "design";
   fix: string;
 }
 

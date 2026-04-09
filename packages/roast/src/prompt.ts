@@ -10,7 +10,7 @@ Rules:
 - The headline is your single best one-liner about the site. Make it quotable and devastating.
 - The closer is a different devastating burn that lands like a punchline.
 - Grades use the scale: A+, A, A-, B+, B, B-, C+, C, C-, D+, D, D-, F
-- Quick wins are 2-3 concrete, specific improvements with real values (hex codes, pixel sizes, CSS properties).
+- Quick wins must be 4 items: 3 objective/technical (performance, accessibility, SEO, broken markup, missing meta tags, contrast ratios, image optimization) and 1 design-related. Each must cite specific values.
 - Be funny, not cruel. Think comedy roast, not bullying.
 - Reference developer/internet culture naturally — don't force it.
 - If the site is actually good, acknowledge it but still find things to roast. Nobody escapes clean.`;
@@ -41,14 +41,19 @@ export const roastSchema = z.object({
   quickWins: z
     .array(
       z.object({
+        category: z
+          .enum(["performance", "accessibility", "seo", "design"])
+          .describe("Type of fix"),
         fix: z
           .string()
           .describe(
-            "Concrete fix with specific values — CSS properties, hex codes, pixel sizes, or tool names",
+            "Concrete fix with specific values — contrast ratios, image sizes, missing attributes, CSS properties",
           ),
       }),
     )
-    .describe("2-3 highest-impact, most specific fixes for this site"),
+    .describe(
+      "Exactly 4 fixes: 3 objective/technical (performance, accessibility, seo) + 1 design",
+    ),
   closer: z
     .string()
     .describe("Devastating closing burn, different from the headline"),

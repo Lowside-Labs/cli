@@ -94,7 +94,8 @@ export function renderRoast(
     console.log(`  ${pc.bold("QUICK WINS")}`);
     for (let i = 0; i < roast.quickWins.length; i++) {
       const win = roast.quickWins[i]!;
-      console.log(`  ${pc.dim(`${i + 1}.`)} ${win.fix}`);
+      const tag = pc.dim(`[${win.category}]`);
+      console.log(`  ${pc.dim(`${i + 1}.`)} ${tag} ${win.fix}`);
     }
   }
 
