@@ -1,6 +1,6 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { generateText, Output } from "ai";
-import { createFirecrawlClient } from "@npx/firecrawl";
+import { createFirecrawlClient, type BrandingColors } from "@npx/firecrawl";
 import { ROAST_SYSTEM_PROMPT, roastSchema } from "./prompt.js";
 import type { RoastResult } from "./types.js";
 
@@ -8,10 +8,15 @@ const PROXY_URL = process.env["PROXY_URL"] ?? "https://npx-proxy.YOUR_SUBDOMAIN.
 
 const anthropic = createAnthropic({
   baseURL: `${PROXY_URL}/anthropic/v1`,
-  apiKey: "proxy", // proxy injects the real key
+  apiKey: "proxy",
 });
 
-export async function roastUrl(url: string): Promise<RoastResult> {
+export interface RoastData {
+  result: RoastResult;
+  colors: BrandingColors | undefined;
+}
+
+export async function roastUrl(url: string): Promise<RoastData> {
   const firecrawl = createFirecrawlClient({ proxyUrl: PROXY_URL });
 
   const site = await firecrawl.scrape(url, {
@@ -47,12 +52,15 @@ export async function roastUrl(url: string): Promise<RoastResult> {
       },
     ],
     output: Output.object({ schema: roastSchema }),
-    maxOutputTokens: 1024,
+    maxOutputTokens: 1500,
   });
 
   if (!output) {
     throw new Error("Failed to generate structured roast");
   }
 
-  return output;
+  return {
+    result: output,
+    colors: site.data.branding?.colors,
+  };
 }

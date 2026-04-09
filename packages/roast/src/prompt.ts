@@ -10,6 +10,7 @@ Rules:
 - The headline is your single best one-liner about the site. Make it quotable and devastating.
 - The closer is a different devastating burn that lands like a punchline.
 - Grades use the scale: A+, A, A-, B+, B, B-, C+, C, C-, D+, D, D-, F
+- Quick wins are 2-3 concrete, specific improvements with real values (hex codes, pixel sizes, CSS properties).
 - Be funny, not cruel. Think comedy roast, not bullying.
 - Reference developer/internet culture naturally — don't force it.
 - If the site is actually good, acknowledge it but still find things to roast. Nobody escapes clean.`;
@@ -17,14 +18,38 @@ Rules:
 export const roastSchema = z.object({
   headline: z
     .string()
-    .describe("The single best one-liner roast. Quotable, devastating, specific to this site."),
+    .describe(
+      "The single best one-liner roast. Quotable, devastating, specific to this site.",
+    ),
   categories: z.array(
     z.object({
-      name: z.enum(["Design", "Performance", "Copy", "Mobile", "Accessibility", "Vibe"]),
+      name: z.enum([
+        "Design",
+        "Performance",
+        "Copy",
+        "Mobile",
+        "Accessibility",
+        "Vibe",
+      ]),
       grade: z.string().describe("Letter grade from A+ to F"),
-      roast: z.string().describe("One-liner roast for this category, under 80 chars"),
+      roast: z
+        .string()
+        .describe("One-liner roast for this category, under 80 chars"),
     }),
   ),
   overall: z.string().describe("Overall letter grade"),
-  closer: z.string().describe("Devastating closing burn, different from the headline"),
+  quickWins: z
+    .array(
+      z.object({
+        fix: z
+          .string()
+          .describe(
+            "Concrete fix with specific values — CSS properties, hex codes, pixel sizes, or tool names",
+          ),
+      }),
+    )
+    .describe("2-3 highest-impact, most specific fixes for this site"),
+  closer: z
+    .string()
+    .describe("Devastating closing burn, different from the headline"),
 });

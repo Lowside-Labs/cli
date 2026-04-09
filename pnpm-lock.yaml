@@ -24,15 +24,6 @@ importers:
         specifier: ^5.8.3
         version: 5.9.3
 
-  packages/ai:
-    devDependencies:
-      tsdown:
-        specifier: ^0.21.7
-        version: 0.21.7(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.8.3
-        version: 5.9.3
-
   packages/cli-template:
     dependencies:
       '@clack/prompts':
