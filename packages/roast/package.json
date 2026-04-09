@@ -2,6 +2,24 @@
   "name": "roasted",
   "version": "0.1.0",
   "description": "Roast any website with AI-powered brutality",
+  "author": "Emad Abdulrahim",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lowside-Labs/npx.git",
+    "directory": "packages/roast"
+  },
+  "homepage": "https://github.com/Lowside-Labs/npx/tree/main/packages/roast",
+  "keywords": [
+    "cli",
+    "website",
+    "roast",
+    "ai",
+    "design",
+    "accessibility",
+    "performance",
+    "review"
+  ],
   "bin": {
     "roasted": "./dist/cli.mjs"
   },
