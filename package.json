@@ -1,0 +1,27 @@
+{
+  "name": "npx",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "typecheck": "turbo run typecheck",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck",
+    "release": "turbo run build lint typecheck && changeset version",
+    "publish-packages": "turbo run build && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.30.0",
+    "oxfmt": "^0.44.0",
+    "oxlint": "^1.59.0",
+    "turbo": "^2.9.5",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@10.27.0"
+}

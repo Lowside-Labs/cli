@@ -1,0 +1,30 @@
+{
+  "name": "cli-template",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Template for creating new CLI tools — copy this package to start a new tool",
+  "bin": {
+    "cli-template": "./dist/cli.mjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.2.0",
+    "commander": "^14.0.3",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "tsdown": "^0.21.7",
+    "typescript": "^5.8.3"
+  }
+}
