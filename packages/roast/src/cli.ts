@@ -65,7 +65,7 @@ function copyImageToClipboard(filePath: string): boolean {
 }
 
 program
-  .name("roast")
+  .name("roasted")
   .description("Roast any website with AI-powered brutality")
   .version("0.1.0")
   .argument("<url>", "URL to roast")

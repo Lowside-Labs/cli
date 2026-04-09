@@ -48,7 +48,7 @@ pnpm deploy             # wrangler deploy (production)
 ```
 packages/
   firecrawl/       @npx/firecrawl  — Firecrawl client primitive (private)
-  roast/           roast           — CLI tool (published via npx)
+  roast/           roasted         — CLI tool (published via npx)
   cli-template/    cli-template    — Starter template (private)
 workers/
   proxy/           npx-proxy       — CF Worker (Firecrawl + Anthropic proxy)

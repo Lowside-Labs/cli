@@ -1,9 +1,9 @@
 {
-  "name": "roast",
+  "name": "roasted",
   "version": "0.1.0",
   "description": "Roast any website with AI-powered brutality",
   "bin": {
-    "roast": "./dist/cli.mjs"
+    "roasted": "./dist/cli.mjs"
   },
   "files": [
     "dist"

@@ -117,7 +117,7 @@ export function generateCard(url: string, roast: RoastResult): Buffer {
 
   // Branding
   lines.push(
-    `<text x="${W - PX}" y="${H - 28}" font-family="${MONO}" font-size="13" fill="${DIM}" text-anchor="end">npx roast</text>`,
+    `<text x="${W - PX}" y="${H - 28}" font-family="${MONO}" font-size="13" fill="${DIM}" text-anchor="end">npx roasted</text>`,
   );
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
