@@ -1,0 +1,24 @@
+{
+  "name": "@npx/firecrawl",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Typed Firecrawl client — scrape, screenshot, and branding extraction via proxy",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "types": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "tsdown": "^0.21.7",
+    "typescript": "^5.8.3"
+  }
+}

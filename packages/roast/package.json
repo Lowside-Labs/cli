@@ -1,0 +1,32 @@
+{
+  "name": "roast",
+  "version": "0.1.0",
+  "description": "Roast any website with AI-powered brutality",
+  "bin": {
+    "roast": "./dist/cli.mjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.2.0",
+    "boxen": "^8.0.1",
+    "commander": "^14.0.3",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@npx/ai": "workspace:*",
+    "@npx/firecrawl": "workspace:*",
+    "@types/node": "^25.5.2",
+    "tsdown": "^0.21.7",
+    "typescript": "^5.8.3"
+  }
+}
