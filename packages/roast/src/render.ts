@@ -76,6 +76,14 @@ export function renderRoast(
     `  ${pc.bold("OVERALL")} ${pc.dim(".".repeat(nameCol - 7 + 2))} ${overallColor(pc.bold(roast.overall))}`,
   );
 
+  // Tech stack
+  if (roast.techStack?.length) {
+    console.log();
+    console.log(
+      `  ${pc.bold("STACK")}    ${roast.techStack.map((t) => pc.dim(t)).join(pc.dim("  ·  "))}`,
+    );
+  }
+
   // Color palette
   if (colors) {
     const swatches = Object.entries(colors)

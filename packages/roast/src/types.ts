@@ -14,5 +14,6 @@ export interface RoastResult {
   categories: RoastCategory[];
   overall: string;
   quickWins: QuickWin[];
+  techStack: string[];
   closer: string;
 }

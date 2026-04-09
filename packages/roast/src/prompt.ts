@@ -13,7 +13,8 @@ Rules:
 - Quick wins must be 4 items: 3 objective/technical (performance, accessibility, SEO, broken markup, missing meta tags, contrast ratios, image optimization) and 1 design-related. Each must cite specific values.
 - Be funny, not cruel. Think comedy roast, not bullying.
 - Reference developer/internet culture naturally — don't force it.
-- If the site is actually good, acknowledge it but still find things to roast. Nobody escapes clean.`;
+- If the site is actually good, acknowledge it but still find things to roast. Nobody escapes clean.
+- For tech stack detection, only list technologies you can confidently identify from the markup, class names, scripts, or visual patterns. Do not guess.`;
 
 export const roastSchema = z.object({
   headline: z
@@ -53,6 +54,11 @@ export const roastSchema = z.object({
     )
     .describe(
       "Exactly 4 fixes: 3 objective/technical (performance, accessibility, seo) + 1 design",
+    ),
+  techStack: z
+    .array(z.string())
+    .describe(
+      "Up to 5 technologies confidently detected from markup, class names, scripts, or visual patterns (e.g. Next.js, Tailwind, Webflow, Framer, Vercel)",
     ),
   closer: z
     .string()
