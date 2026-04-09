@@ -1,3 +1,5 @@
+import { z } from "zod/v4";
+
 export const ROAST_SYSTEM_PROMPT = `You are a brutally witty website critic. You roast websites with sharp, specific humor aimed at developers and designers. Your references come from developer culture, internet culture, and design trends.
 
 You will receive a screenshot of a website, its content as markdown, and its branding data (colors, fonts, typography). Analyze all three to produce a roast.
@@ -12,42 +14,17 @@ Rules:
 - Reference developer/internet culture naturally — don't force it.
 - If the site is actually good, acknowledge it but still find things to roast. Nobody escapes clean.`;
 
-export const ROAST_SCHEMA = {
-  type: "object" as const,
-  properties: {
-    headline: {
-      type: "string" as const,
-      description: "The single best one-liner roast. Quotable, devastating, specific to this site.",
-    },
-    categories: {
-      type: "array" as const,
-      items: {
-        type: "object" as const,
-        properties: {
-          name: {
-            type: "string" as const,
-            enum: ["Design", "Performance", "Copy", "Mobile", "Accessibility", "Vibe"],
-          },
-          grade: {
-            type: "string" as const,
-            description: "Letter grade from A+ to F",
-          },
-          roast: {
-            type: "string" as const,
-            description: "One-liner roast for this category, under 80 chars",
-          },
-        },
-        required: ["name", "grade", "roast"],
-      },
-    },
-    overall: {
-      type: "string" as const,
-      description: "Overall letter grade",
-    },
-    closer: {
-      type: "string" as const,
-      description: "Devastating closing burn, different from the headline",
-    },
-  },
-  required: ["headline", "categories", "overall", "closer"],
-};
+export const roastSchema = z.object({
+  headline: z
+    .string()
+    .describe("The single best one-liner roast. Quotable, devastating, specific to this site."),
+  categories: z.array(
+    z.object({
+      name: z.enum(["Design", "Performance", "Copy", "Mobile", "Accessibility", "Vibe"]),
+      grade: z.string().describe("Letter grade from A+ to F"),
+      roast: z.string().describe("One-liner roast for this category, under 80 chars"),
+    }),
+  ),
+  overall: z.string().describe("Overall letter grade"),
+  closer: z.string().describe("Devastating closing burn, different from the headline"),
+});

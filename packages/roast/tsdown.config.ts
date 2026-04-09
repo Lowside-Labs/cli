@@ -8,6 +8,6 @@ export default defineConfig({
   // Bundle workspace packages into the CLI output so the published
   // package is self-contained — these are devDependencies, not runtime.
   deps: {
-    alwaysBundle: ["@npx/firecrawl", "@npx/ai"],
+    alwaysBundle: ["@npx/firecrawl"],
   },
 });

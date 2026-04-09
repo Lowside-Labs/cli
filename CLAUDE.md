@@ -57,7 +57,7 @@ workers/
 
 ### Primitives
 
-`@npx/firecrawl` and `@npx/ai` are composable client packages. They talk to the CF Worker proxy (not directly to Firecrawl/Anthropic). Any CLI tool can import them:
+`@npx/firecrawl` is a composable client package. It talks to the CF Worker proxy (not directly to Firecrawl). Any CLI tool can import it:
 
 ```typescript
 import { createFirecrawlClient } from "@npx/firecrawl";
@@ -72,13 +72,15 @@ const result = await ai.generate({ system: "...", messages: [...], schema: mySch
 
 The AI client supports structured output — pass a JSON schema and get typed `result.parsed` back. The proxy translates this to Anthropic's tool_use protocol.
 
+For AI, CLI tools use the Vercel AI SDK (`ai` + `@ai-sdk/anthropic`) directly with `generateText` + `Output.object()` for structured output. The `@ai-sdk/anthropic` provider points at the CF Worker proxy via `baseURL`, which injects the API key transparently. `@npx/ai` exists as a lighter alternative but `roast` uses the SDK directly.
+
 ### Bundling
 
 CLI packages bundle workspace primitives into a single file via tsdown's `deps.alwaysBundle`. Primitives are listed as `devDependencies` in CLI packages — they're inlined at build time, not runtime deps.
 
 ### CF Worker Proxy
 
-Two routes: `POST /scrape` (Firecrawl) and `POST /ai` (Anthropic). API keys live in Worker secrets (`.dev.vars` locally, `wrangler secret` in prod). CLI tools never touch API keys.
+Two routes: `POST /scrape` (Firecrawl) and `/anthropic/v1/*` (transparent Anthropic proxy). API keys live in Worker secrets (`.dev.vars` locally, `wrangler secret` in prod). CLI tools never touch API keys.
 
 ### Build
 

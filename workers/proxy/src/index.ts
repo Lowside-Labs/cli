@@ -9,25 +9,20 @@ export default {
       return new Response(null, { headers: corsHeaders() });
     }
 
-    if (request.method !== "POST") {
-      return json({ error: "Method not allowed" }, 405);
-    }
-
     const url = new URL(request.url);
 
-    try {
-      switch (url.pathname) {
-        case "/scrape":
-          return handleScrape(request, env);
-        case "/ai":
-          return handleAI(request, env);
-        default:
-          return json({ error: "Not found" }, 404);
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Internal error";
-      return json({ error: message }, 500);
+    if (url.pathname === "/scrape" && request.method === "POST") {
+      return handleScrape(request, env);
     }
+
+    // Transparent Anthropic API proxy — the AI SDK sends requests to
+    // {baseURL}/messages, so we strip our /anthropic/v1 prefix and
+    // forward everything under it to api.anthropic.com.
+    if (url.pathname.startsWith("/anthropic/v1/")) {
+      return handleAnthropic(request, url, env);
+    }
+
+    return json({ error: "Not found" }, 404);
   },
 } satisfies ExportedHandler<Env>;
 
@@ -52,80 +47,37 @@ async function handleScrape(request: Request, env: Env): Promise<Response> {
   });
 }
 
-// ── AI (Anthropic proxy with structured output) ────────────────────
+// ── Anthropic (transparent auth proxy) ─────────────────────────────
+// Forwards requests to api.anthropic.com, injecting the API key.
+// The AI SDK handles message formatting, tool_use, structured output, etc.
 
-interface AIRequest {
-  model?: string;
-  system?: string;
-  messages: unknown[];
-  maxTokens?: number;
-  temperature?: number;
-  schema?: Record<string, unknown>;
-}
+async function handleAnthropic(request: Request, url: URL, env: Env): Promise<Response> {
+  const anthropicPath = url.pathname.replace("/anthropic/v1", "/v1");
+  const upstream = new URL(`https://api.anthropic.com${anthropicPath}${url.search}`);
 
-async function handleAI(request: Request, env: Env): Promise<Response> {
-  const { model, system, messages, maxTokens, temperature, schema } =
-    (await request.json()) as AIRequest;
+  const headers = new Headers(request.headers);
+  headers.set("x-api-key", env.ANTHROPIC_API_KEY);
 
-  const anthropicBody: Record<string, unknown> = {
-    model: model ?? "claude-sonnet-4-6",
-    max_tokens: maxTokens ?? 1024,
-    messages,
-  };
-
-  if (system) anthropicBody.system = system;
-  if (temperature !== undefined) anthropicBody.temperature = temperature;
-
-  // Structured output via tool_use — the proxy handles the translation
-  // so clients just send a JSON schema and get parsed output back.
-  if (schema) {
-    anthropicBody.tools = [
-      {
-        name: "structured_output",
-        description: "Return the structured result",
-        input_schema: schema,
-      },
-    ];
-    anthropicBody.tool_choice = { type: "tool", name: "structured_output" };
+  // Ensure anthropic-version header is present
+  if (!headers.has("anthropic-version")) {
+    headers.set("anthropic-version", "2023-06-01");
   }
 
-  const upstream = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": env.ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify(anthropicBody),
+  const response = await fetch(upstream.toString(), {
+    method: request.method,
+    headers,
+    body: request.method === "POST" ? request.body : undefined,
   });
 
-  if (!upstream.ok) {
-    const error = await upstream.text();
-    return json({ error }, upstream.status);
+  // Stream the response back — supports both regular and streaming responses
+  const responseHeaders = new Headers(response.headers);
+  for (const [key, value] of Object.entries(corsHeaders())) {
+    responseHeaders.set(key, value);
   }
 
-  const result = (await upstream.json()) as {
-    content: Array<{ type: "text"; text: string } | { type: "tool_use"; input: unknown }>;
-    usage?: { input_tokens: number; output_tokens: number };
-  };
-
-  let content = "";
-  let parsed: unknown = undefined;
-
-  for (const block of result.content) {
-    if (block.type === "text") content += block.text;
-    if (block.type === "tool_use") parsed = block.input;
-  }
-
-  return json({
-    content,
-    parsed,
-    usage: result.usage
-      ? {
-          inputTokens: result.usage.input_tokens,
-          outputTokens: result.usage.output_tokens,
-        }
-      : undefined,
+  return new Response(response.body, {
+    status: response.status,
+    headers: responseHeaders,
   });
 }
 
@@ -142,6 +94,6 @@ function corsHeaders(): Record<string, string> {
   return {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, x-api-key, anthropic-version",
   };
 }
