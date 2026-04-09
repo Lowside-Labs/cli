@@ -1,6 +1,8 @@
+export type Grade = "A+" | "A" | "A-" | "B+" | "B" | "B-" | "C+" | "C" | "C-" | "D+" | "D" | "D-" | "F";
+
 export interface RoastCategory {
   name: string;
-  grade: string;
+  grade: Grade;
   roast: string;
 }
 
@@ -12,7 +14,7 @@ export interface QuickWin {
 export interface RoastResult {
   headline: string;
   categories: RoastCategory[];
-  overall: string;
+  overall: Grade;
   quickWins: QuickWin[];
   techStack: string[];
   closer: string;

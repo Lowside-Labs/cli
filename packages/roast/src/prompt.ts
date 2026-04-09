@@ -32,13 +32,17 @@ export const roastSchema = z.object({
         "Accessibility",
         "Vibe",
       ]),
-      grade: z.string().describe("Letter grade from A+ to F"),
+      grade: z
+        .enum(["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "F"])
+        .describe("Letter grade"),
       roast: z
         .string()
         .describe("One-liner roast for this category, under 80 chars"),
     }),
   ),
-  overall: z.string().describe("Overall letter grade"),
+  overall: z
+    .enum(["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "F"])
+    .describe("Overall letter grade"),
   quickWins: z
     .array(
       z.object({

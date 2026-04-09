@@ -26,7 +26,7 @@ export async function roastUrl(url: string): Promise<RoastData> {
   const firecrawl = createFirecrawlClient({ proxyUrl: PROXY_URL, headers: NPX_HEADERS });
 
   const site = await firecrawl.scrape(url, {
-    formats: ["screenshot", "markdown", "branding"],
+    formats: ["screenshot", "markdown", "html", "branding"],
   });
 
   let text = `URL: ${url}\n`;
@@ -37,6 +37,10 @@ export async function roastUrl(url: string): Promise<RoastData> {
 
   if (site.data.markdown) {
     text += `\n## Page Content\n${site.data.markdown.slice(0, 3000)}\n`;
+  }
+
+  if (site.data.html) {
+    text += `\n## HTML (head + first 2000 chars)\n${site.data.html.slice(0, 4000)}\n`;
   }
 
   if (site.data.branding) {
