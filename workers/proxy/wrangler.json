@@ -2,5 +2,15 @@
   "$schema": "https://cdn.jsdelivr.net/npm/wrangler/config-schema.json",
   "name": "npx-proxy",
   "main": "src/index.ts",
-  "compatibility_date": "2026-04-01"
+  "compatibility_date": "2026-04-01",
+  "rate_limits": [
+    {
+      "binding": "RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 2,
+        "period": 60
+      }
+    }
+  ]
 }

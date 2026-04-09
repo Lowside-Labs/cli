@@ -1,12 +1,20 @@
 interface Env {
   FIRECRAWL_API_KEY: string;
   ANTHROPIC_API_KEY: string;
+  RATE_LIMITER: RateLimit;
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: corsHeaders() });
+    }
+
+    // Rate limit by IP — 2 requests per 60 seconds
+    const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
+    const { success } = await env.RATE_LIMITER.limit({ key: ip });
+    if (!success) {
+      return json({ error: "Rate limited — try again in a minute" }, 429);
     }
 
     const url = new URL(request.url);
