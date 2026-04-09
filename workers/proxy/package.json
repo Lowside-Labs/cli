@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "deploy:secrets": "node -e \"const f=require('fs').readFileSync('.dev.vars','utf8');const o=Object.fromEntries(f.trim().split('\\n').map(l=>{const[k,...v]=l.split('=');return[k,v.join('=')]}));process.stdout.write(JSON.stringify(o))\" | wrangler secret bulk",
     "typecheck": "tsc"
   },
   "devDependencies": {

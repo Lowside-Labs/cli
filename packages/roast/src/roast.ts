@@ -4,7 +4,7 @@ import { createFirecrawlClient, type BrandingColors } from "@npx/firecrawl";
 import { ROAST_SYSTEM_PROMPT, roastSchema } from "./prompt.js";
 import type { RoastResult } from "./types.js";
 
-const PROXY_URL = process.env["PROXY_URL"] ?? "https://npx-proxy.YOUR_SUBDOMAIN.workers.dev";
+const PROXY_URL = process.env["PROXY_URL"] ?? "https://npx-proxy.emad90mohamad.workers.dev";
 
 const anthropic = createAnthropic({
   baseURL: `${PROXY_URL}/anthropic/v1`,

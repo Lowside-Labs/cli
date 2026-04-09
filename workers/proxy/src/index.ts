@@ -1,6 +1,7 @@
 interface Env {
   FIRECRAWL_API_KEY: string;
   ANTHROPIC_API_KEY: string;
+  OPENAI_API_KEY: string;
   RATE_LIMITER: RateLimit;
 }
 
@@ -10,11 +11,13 @@ export default {
       return new Response(null, { headers: corsHeaders() });
     }
 
-    // Rate limit by IP — 2 requests per 60 seconds
-    const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
-    const { success } = await env.RATE_LIMITER.limit({ key: ip });
-    if (!success) {
-      return json({ error: "Rate limited — try again in a minute" }, 429);
+    // Rate limit by IP — 2 requests per 60 seconds (skipped in local dev)
+    if (env.RATE_LIMITER) {
+      const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
+      const { success } = await env.RATE_LIMITER.limit({ key: ip });
+      if (!success) {
+        return json({ error: "Rate limited — try again in a minute" }, 429);
+      }
     }
 
     const url = new URL(request.url);
@@ -23,11 +26,23 @@ export default {
       return handleScrape(request, env);
     }
 
-    // Transparent Anthropic API proxy — the AI SDK sends requests to
-    // {baseURL}/messages, so we strip our /anthropic/v1 prefix and
-    // forward everything under it to api.anthropic.com.
     if (url.pathname.startsWith("/anthropic/v1/")) {
-      return handleAnthropic(request, url, env);
+      return proxyUpstream(request, url, {
+        prefix: "/anthropic/v1",
+        origin: "https://api.anthropic.com/v1",
+        authHeader: "x-api-key",
+        apiKey: env.ANTHROPIC_API_KEY,
+        extraHeaders: { "anthropic-version": "2023-06-01" },
+      });
+    }
+
+    if (url.pathname.startsWith("/openai/v1/")) {
+      return proxyUpstream(request, url, {
+        prefix: "/openai/v1",
+        origin: "https://api.openai.com/v1",
+        authHeader: "Authorization",
+        apiKey: `Bearer ${env.OPENAI_API_KEY}`,
+      });
     }
 
     return json({ error: "Not found" }, 404);
@@ -55,29 +70,41 @@ async function handleScrape(request: Request, env: Env): Promise<Response> {
   });
 }
 
-// ── Anthropic (transparent auth proxy) ─────────────────────────────
-// Forwards requests to api.anthropic.com, injecting the API key.
-// The AI SDK handles message formatting, tool_use, structured output, etc.
+// ── Generic upstream proxy ─────────────────────────────────────────
+// Transparently forwards requests to an upstream API, injecting auth.
+// The AI SDK handles message formatting, structured output, etc.
 
-async function handleAnthropic(request: Request, url: URL, env: Env): Promise<Response> {
-  const anthropicPath = url.pathname.replace("/anthropic/v1", "/v1");
-  const upstream = new URL(`https://api.anthropic.com${anthropicPath}${url.search}`);
+interface ProxyConfig {
+  prefix: string;
+  origin: string;
+  authHeader: string;
+  apiKey: string;
+  extraHeaders?: Record<string, string>;
+}
+
+async function proxyUpstream(
+  request: Request,
+  url: URL,
+  config: ProxyConfig,
+): Promise<Response> {
+  const upstreamPath = url.pathname.replace(config.prefix, "");
+  const upstream = `${config.origin}${upstreamPath}${url.search}`;
 
   const headers = new Headers(request.headers);
-  headers.set("x-api-key", env.ANTHROPIC_API_KEY);
+  headers.set(config.authHeader, config.apiKey);
 
-  // Ensure anthropic-version header is present
-  if (!headers.has("anthropic-version")) {
-    headers.set("anthropic-version", "2023-06-01");
+  if (config.extraHeaders) {
+    for (const [key, value] of Object.entries(config.extraHeaders)) {
+      if (!headers.has(key)) headers.set(key, value);
+    }
   }
 
-  const response = await fetch(upstream.toString(), {
+  const response = await fetch(upstream, {
     method: request.method,
     headers,
     body: request.method === "POST" ? request.body : undefined,
   });
 
-  // Stream the response back — supports both regular and streaming responses
   const responseHeaders = new Headers(response.headers);
   for (const [key, value] of Object.entries(corsHeaders())) {
     responseHeaders.set(key, value);
@@ -102,6 +129,7 @@ function corsHeaders(): Record<string, string> {
   return {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, x-api-key, anthropic-version",
+    "Access-Control-Allow-Headers":
+      "Content-Type, Authorization, x-api-key, anthropic-version",
   };
 }
