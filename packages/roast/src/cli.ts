@@ -1,8 +1,11 @@
+import { execSync } from "node:child_process";
+import { writeFileSync } from "node:fs";
 import { program } from "commander";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
 import { roastUrl } from "./roast.js";
 import { renderRoast } from "./render.js";
+import { generateCard } from "./card.js";
 
 const SPINNER_MESSAGES = [
   "Inspecting the crime scene",
@@ -40,12 +43,34 @@ function shuffled<T>(arr: T[]): T[] {
   return copy;
 }
 
+function slugFromUrl(url: string): string {
+  return url
+    .replace(/^https?:\/\//, "")
+    .replace(/[^a-z0-9]+/gi, "-")
+    .replace(/-+$/, "");
+}
+
+function copyImageToClipboard(filePath: string): boolean {
+  if (process.platform === "darwin") {
+    try {
+      execSync(
+        `osascript -e 'set the clipboard to (read (POSIX file "${filePath}") as «class PNGf»)'`,
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
 program
   .name("roast")
   .description("Roast any website with AI-powered brutality")
   .version("0.1.0")
   .argument("<url>", "URL to roast")
-  .action(async (url: string) => {
+  .option("--share", "Generate a PNG card and copy to clipboard (skips prompt)")
+  .action(async (url: string, opts: { share?: boolean }) => {
     p.intro(pc.bgRed(pc.white(pc.bold(" roast "))));
 
     if (!/^https?:\/\//i.test(url)) {
@@ -68,10 +93,50 @@ program
       s.stop("Roast ready.");
       console.log();
       renderRoast(url, result, colors);
+
+      const sharePrompts = [
+        "Immortalize this roast?",
+        "Share the damage?",
+        "Turn this into a tweet-ready weapon?",
+        "Save the evidence?",
+        "Export the carnage?",
+        "Frame this and hang it on their wall?",
+        "Generate a shareable card?",
+        "Want a PNG to ruin someone's day?",
+        "Package this for maximum social destruction?",
+        "Make it screenshot-official?",
+      ];
+
+      const shouldShare =
+        opts.share ||
+        (await p.confirm({
+          message:
+            sharePrompts[Math.floor(Math.random() * sharePrompts.length)]!,
+          initialValue: false,
+        }));
+
+      if (p.isCancel(shouldShare)) {
+        process.exit(0);
+      }
+
+      if (shouldShare) {
+        const png = generateCard(url, result);
+        const filename = `roast-${slugFromUrl(url)}.png`;
+        writeFileSync(filename, png);
+
+        const copied = copyImageToClipboard(`${process.cwd()}/${filename}`);
+        if (copied) {
+          p.outro(`${pc.green("Card copied to clipboard")} ${pc.dim(`and saved to ${filename}`)}`);
+        } else {
+          p.outro(`${pc.green(`Card saved to ${filename}`)} ${pc.dim("— drag it into a tweet")}`);
+        }
+      }
     } catch (error) {
       clearInterval(interval);
       s.stop("Failed to roast.");
-      p.log.error(error instanceof Error ? error.message : "An unexpected error occurred");
+      p.log.error(
+        error instanceof Error ? error.message : "An unexpected error occurred",
+      );
       process.exit(1);
     }
   });
